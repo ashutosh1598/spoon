@@ -7,12 +7,20 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 
+import spoon.Launcher;
+import spoon.SpoonModelBuilder;
+import spoon.compiler.SpoonResourceHelper;
+import spoon.reflect.cu.CompilationUnit;
 import spoon.reflect.cu.SourcePosition;
+import spoon.reflect.declaration.CtMethod;
+import spoon.reflect.declaration.CtType;
+import spoon.reflect.factory.Factory;
 import spoon.reflect.visitor.printer.change.FragmentType;
 import spoon.reflect.visitor.printer.change.SourceFragment;
 import spoon.support.reflect.cu.position.BodyHolderSourcePositionImpl;
 import spoon.support.reflect.cu.position.DeclarationSourcePositionImpl;
 import spoon.support.reflect.cu.position.SourcePositionImpl;
+import spoon.test.position.testclasses.MethodWithJavaDocAndModifiers;
 
 public class SourceFragmentTest {
 
@@ -183,4 +191,80 @@ public class SourceFragmentTest {
 	private SourceFragment createFragment(int start, int end) {
 		return new SourceFragment(new SourcePositionImpl(null, start, end - 1, null));
 	}
+	
+	@Test
+	public void testSourceFragmentOfMethodWithComment() throws Exception {
+		final Launcher launcher = new Launcher();
+		launcher.getEnvironment().setNoClasspath(false);
+		launcher.getEnvironment().setCommentEnabled(true);
+		SpoonModelBuilder comp = launcher.createCompiler();
+		comp.addInputSources(SpoonResourceHelper.resources("./src/test/java/" + MethodWithJavaDocAndModifiers.class.getName().replace('.', '/') + ".java"));
+		comp.build();
+		Factory f = comp.getFactory();
+		
+		final CtType<?> foo = f.Type().get(MethodWithJavaDocAndModifiers.class);
+
+		CtMethod method2 = foo.getMethodsByName("mWithDoc").get(0);
+		CompilationUnit cu = foo.getPosition().getCompilationUnit();
+		SourceFragment fragment = cu.getSourceFragment(method2);
+		//keep \n here because it reflects EOL of the file MethodWithJavaDocAndModifiers.java
+		assertEquals("/**\n" + 
+				"	 * Method with javadoc\n" + 
+				"	 * @param parm1 the parameter\n" + 
+				"	 */\n" + 
+				"	public @Deprecated int mWithDoc(int parm1) {\n" + 
+				"		return parm1;\n" + 
+				"	}", fragment.getSourceCode());
+		
+		SourceFragment child = fragment.getFirstChild();
+		assertSame(FragmentType.MODIFIERS, child.getFragmentType());
+		assertEquals("/**\n" + 
+				"	 * Method with javadoc\n" + 
+				"	 * @param parm1 the parameter\n" + 
+				"	 */\n" + 
+				"	public @Deprecated", child.getSourceCode());
+		{ //check children fragments of current `child`
+			assertEquals("/**\n" + 
+					"	 * Method with javadoc\n" + 
+					"	 * @param parm1 the parameter\n" + 
+					"	 */", child.getFirstChild().getSourceCode()); 
+			assertEquals("@Deprecated", child.getFirstChild().getNextSibling().getSourceCode());
+		}
+		
+		child = child.getNextSibling();
+		assertSame(FragmentType.BEFORE_NAME, child.getFragmentType());
+		//it is including spaces, because it represents spaces after modifiers and before name
+		assertEquals(" int ", child.getSourceCode());
+		{ //check children fragments of current `child`
+			assertEquals("int", child.getFirstChild().getSourceCode()); 
+		}
+		
+		child = child.getNextSibling();
+		assertSame(FragmentType.NAME, child.getFragmentType());
+		assertEquals("mWithDoc", child.getSourceCode());
+		{ //check children fragments of current `child`
+			assertNull(child.getFirstChild()); 
+		}
+		
+		child = child.getNextSibling();
+		assertSame(FragmentType.AFTER_NAME, child.getFragmentType());
+		//it is including spaces, because it represents code after name and before body
+		assertEquals("(int parm1) ", child.getSourceCode());
+		{ //check children fragments of current `child`
+			assertEquals("int parm1", child.getFirstChild().getSourceCode()); 
+		}
+
+		child = child.getNextSibling();
+		assertSame(FragmentType.BODY, child.getFragmentType());
+		assertEquals("{\n" + 
+				"		return parm1;\n" + 
+				"	}", child.getSourceCode());
+		{ //check children fragments of current `child`
+			assertEquals("{\n" + 
+					"		return parm1;\n" + 
+					"	}", child.getFirstChild().getSourceCode()); 
+			assertEquals("return parm1;", child.getFirstChild().getFirstChild().getSourceCode()); 
+		}
+	}
+	
 }

@@ -93,7 +93,8 @@ public class SourceFragment  {
 		case MAIN_FRAGMENT:
 			return sourcePosition.getSourceStart();
 		case MODIFIERS:
-			return ((DeclarationSourcePosition) sourcePosition).getModifierSourceStart();
+//			return ((DeclarationSourcePosition) sourcePosition).getModifierSourceStart();
+			return sourcePosition.getSourceStart();
 		case BEFORE_NAME:
 			return ((DeclarationSourcePosition) sourcePosition).getModifierSourceEnd() + 1;
 		case NAME:
@@ -393,9 +394,10 @@ public class SourceFragment  {
 		if (sourcePosition instanceof DeclarationSourcePosition) {
 			DeclarationSourcePosition dsp = (DeclarationSourcePosition) sourcePosition;
 			int endOfLastFragment = dsp.getSourceStart();
-			if (endOfLastFragment < dsp.getModifierSourceStart()) {
-				throw new SpoonException("DeclarationSourcePosition#sourceStart < modifierSourceStart for: " + sourcePosition);
-			}
+//Modifiers source start is not interesting here. SourceFragment simply assumes that modifiers starts at sourceStart
+//			if (endOfLastFragment < dsp.getModifierSourceStart()) {
+//				throw new SpoonException("DeclarationSourcePosition#sourceStart < modifierSourceStart for: " + sourcePosition);
+//			}
 			addChild(new SourceFragment(element, sourcePosition, FragmentType.MODIFIERS));
 			if (endOfLastFragment < dsp.getNameStart()) {
 				addChild(new SourceFragment(element, sourcePosition, FragmentType.BEFORE_NAME));
