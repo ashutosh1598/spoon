@@ -22,7 +22,6 @@ import java.util.Set;
 
 import spoon.SpoonException;
 import spoon.compiler.Environment;
-import spoon.experimental.modelobs.ChangeCollector;
 import spoon.reflect.code.CtComment;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.path.CtRole;
@@ -30,6 +29,7 @@ import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 import spoon.reflect.visitor.PrinterHelper;
 import spoon.reflect.visitor.TokenWriter;
+import spoon.support.modelobs.ChangeCollector;
 
 /**
  * {@link PrettyPrinter} implementation which copies as much as possible from origin sources

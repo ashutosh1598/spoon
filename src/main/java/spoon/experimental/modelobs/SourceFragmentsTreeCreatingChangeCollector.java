@@ -20,6 +20,7 @@ import spoon.reflect.cu.CompilationUnit;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.path.CtRole;
 import spoon.reflect.visitor.printer.change.SourceFragment;
+import spoon.support.modelobs.ChangeCollector;
 
 /**
  * Listens on changes  on the spoon model and remembers them
