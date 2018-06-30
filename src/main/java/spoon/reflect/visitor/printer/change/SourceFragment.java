@@ -197,22 +197,18 @@ public class SourceFragment  {
 		parents.push(this);
 		//scan all children of `element` and build tree of SourceFragments
 		new CtScanner() {
-			int noSource = 0;
 			@Override
 			protected void enter(CtElement e) {
 				SourceFragment newFragment = addChild(parents.peek(), e);
 				if (newFragment != null) {
 					parents.push(newFragment);
-				} else {
-					noSource++;
 				}
 			}
 			@Override
 			protected void exit(CtElement e) {
-				if (noSource == 0) {
+				SourceFragment topFragment = parents.peek();
+				if (topFragment != null && topFragment.getElement() == e) {
 					parents.pop();
-				} else {
-					noSource--;
 				}
 			}
 		}.scan(element);
