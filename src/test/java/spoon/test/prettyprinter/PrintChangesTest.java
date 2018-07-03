@@ -73,10 +73,12 @@ public class PrintChangesTest {
 
 		final CtClass<?> ctClass = launcher.getFactory().Class().get("spoon.support.compiler.jdt.ReferenceBuilder");
 		
+		CtStatement toBeRemoved = ctClass.filterChildren((CtStatement stmt) -> stmt.getPosition().isValidPosition() && stmt.getPosition().getLine() == 803).first();
+		//TODO fix that this toString changes model...
+		assertEquals("bounds = false", toBeRemoved.toString());
+
 		new SourceFragmentsTreeCreatingChangeCollector().attachTo(f.getEnvironment());
 		//change the model
-		CtStatement toBeRemoved = ctClass.filterChildren((CtStatement stmt) -> stmt.getPosition().isValidPosition() && stmt.getPosition().getLine() == 803).first();
-		assertEquals("bounds = false", toBeRemoved.toString());
 		toBeRemoved.delete();
 		
 		ChangesAwareDefaultJavaPrettyPrinter printer = new ChangesAwareDefaultJavaPrettyPrinter(f.getEnvironment());
