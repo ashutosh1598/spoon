@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import spoon.Launcher;
 import spoon.experimental.modelobs.SourceFragmentsTreeCreatingChangeCollector;
+import spoon.reflect.code.CtStatement;
 import spoon.reflect.cu.CompilationUnit;
 import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtType;
@@ -51,6 +52,32 @@ public class PrintChangesTest {
 		new SourceFragmentsTreeCreatingChangeCollector().attachTo(f.getEnvironment());
 		//change the model
 		ctClass.getField("string").setSimpleName("modified");
+		
+		ChangesAwareDefaultJavaPrettyPrinter printer = new ChangesAwareDefaultJavaPrettyPrinter(f.getEnvironment());
+		CompilationUnit cu = f.CompilationUnit().getOrCreate(ctClass);
+		List<CtType<?>> toBePrinted = new ArrayList<>();
+		toBePrinted.add(ctClass);
+
+		printer.calculate(cu, toBePrinted);
+
+		assertEquals(ctClass.getPosition().getCompilationUnit().getOriginalSourceCode(), printer.getResult());
+	}
+	@Test
+	public void testPrintChangedReferenceBuilder() throws Exception {
+		Launcher launcher = new Launcher();
+		launcher.addInputResource("./src/test/resources/spoon/test/prettyprinter/ReferenceBuilder.java");
+		launcher.getEnvironment().setCommentEnabled(true);
+		launcher.getEnvironment().setAutoImports(true);
+		launcher.buildModel();
+		Factory f = launcher.getFactory();
+
+		final CtClass<?> ctClass = launcher.getFactory().Class().get("spoon.support.compiler.jdt.ReferenceBuilder");
+		
+		new SourceFragmentsTreeCreatingChangeCollector().attachTo(f.getEnvironment());
+		//change the model
+		CtStatement toBeRemoved = ctClass.filterChildren((CtStatement stmt) -> stmt.getPosition().isValidPosition() && stmt.getPosition().getLine() == 803).first();
+		assertEquals("bounds = false", toBeRemoved.toString());
+		toBeRemoved.delete();
 		
 		ChangesAwareDefaultJavaPrettyPrinter printer = new ChangesAwareDefaultJavaPrettyPrinter(f.getEnvironment());
 		CompilationUnit cu = f.CompilationUnit().getOrCreate(ctClass);
