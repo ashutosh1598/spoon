@@ -359,7 +359,7 @@ public abstract class SourcePositionUtils  {
 				.fragment(FragmentType.AFTER_NAME,
 						i -> i.role(CtRole.PARAMETER, CtRole.THROWN).startWhenSeparator("("))
 				.fragment(FragmentType.BODY,
-						i -> i.role(CtRole.BODY).startWhenSeparator("{").endWhenSeparator("}")),
+						i -> i.role(CtRole.BODY).startWhenScan(CtRole.BODY).endWhenSeparator("}")),
 //			type(CtBlock.class)
 //				.fragment(FragmentType.MAIN_FRAGMENT,
 //						i -> i.list(CtRole.STATEMENT)),
