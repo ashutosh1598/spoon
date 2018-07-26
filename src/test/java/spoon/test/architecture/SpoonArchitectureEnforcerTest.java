@@ -341,6 +341,7 @@ public class SpoonArchitectureEnforcerTest {
 		officialPackages.add("spoon.support.modelobs.context");
 		officialPackages.add("spoon.support.modelobs");
 		officialPackages.add("spoon.experimental");
+		officialPackages.add("spoon.experimental.modelobs");
 		officialPackages.add("spoon.legacy");
 		officialPackages.add("spoon.metamodel");
 		officialPackages.add("spoon.pattern");
@@ -363,6 +364,7 @@ public class SpoonArchitectureEnforcerTest {
 		officialPackages.add("spoon.reflect.visitor.chain");
 		officialPackages.add("spoon.reflect.visitor.filter");
 		officialPackages.add("spoon.reflect.visitor.printer");
+		officialPackages.add("spoon.reflect.visitor.printer.change");
 		officialPackages.add("spoon.reflect.visitor");
 		officialPackages.add("spoon.reflect");
 		officialPackages.add("spoon.support.comparator");
