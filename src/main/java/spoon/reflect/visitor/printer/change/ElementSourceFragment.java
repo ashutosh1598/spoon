@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import spoon.SpoonException;
 import spoon.reflect.code.CtComment;
@@ -45,10 +46,6 @@ import spoon.reflect.path.CtRole;
 import spoon.reflect.visitor.CtScanner;
 import spoon.support.reflect.CtExtendedModifier;
 import spoon.support.reflect.cu.position.SourcePositionImpl;
-
-import static spoon.reflect.visitor.printer.change.SourcePositionUtils.filter;
-import static spoon.reflect.visitor.printer.change.SourcePositionUtils.findIndexOfPreviousFragment;
-import static spoon.reflect.visitor.printer.change.SourcePositionUtils.isSpaceFragment;
 
 /**
  * Represents a part of source code of an {@link CtElement}
@@ -882,5 +879,76 @@ public class ElementSourceFragment implements SourceFragment {
 			}
 		}
 		return ContainerKind.SINGLE;
+	}
+	/**
+	 * looks for next fragment whose {@link Predicate} `test` returns true
+	 * @param start - the index of first to be checked fragment
+	 * @return index of found fragment, or -1 if not found
+	 */
+	static int findIndexOfNextFragment(List<SourceFragment> fragments, int start, Predicate<SourceFragment> test) {
+		while (start < fragments.size()) {
+			SourceFragment fragment = fragments.get(start);
+			if (test.test(fragment)) {
+				return start;
+			}
+			start++;
+		}
+		return -1;
+	}
+
+	/**
+	 * @param start the index of element with lower index which is checked and may be returned
+	 * @param test a {@link Predicate}, which is evaluated for each item of `fragments` starting from last one and ending with item in index `start`
+	 * @return
+	 */
+	static int findIndexOfPreviousFragment(List<SourceFragment> fragments, int start, Predicate<SourceFragment> test) {
+		int i = fragments.size() - 1;
+		while (i >= start) {
+			if (test.test(fragments.get(i))) {
+				return i;
+			}
+			i--;
+		}
+		return -1;
+	}
+
+	/**
+	 * @param predicate
+	 * @return {@link Predicate} which calls `predicate` for each item of {@link CollectionSourceFragment}
+	 */
+	static Predicate<SourceFragment> checkCollectionItems(Predicate<SourceFragment> predicate) {
+		return (SourceFragment fragment) -> {
+			if (fragment instanceof CollectionSourceFragment) {
+				CollectionSourceFragment collectionFragment = (CollectionSourceFragment) fragment;
+				for (SourceFragment itemFragment : collectionFragment.getItems()) {
+					if (predicate.test(itemFragment)) {
+						return true;
+					}
+				}
+				return false;
+			} else {
+				return predicate.test(fragment);
+			}
+		};
+	}
+
+	/**
+	 * @param predicate
+	 * @return {@link Predicate} which calls `predicate` only for {@link SourceFragment}s of of type `clazz` and returns false for others
+	 */
+	static <T extends SourceFragment> Predicate<SourceFragment> filter(Class<T> clazz, Predicate<T> predicate) {
+		return fragment -> {
+			if (clazz.isInstance(fragment)) {
+				return predicate.test((T) fragment);
+			}
+			return false;
+		};
+	}
+
+	/**
+	 * @return true if {@link SourceFragment} represents a white space
+	 */
+	static boolean isSpaceFragment(SourceFragment fragment) {
+		return fragment instanceof TokenSourceFragment && ((TokenSourceFragment) fragment).getType() == TokenType.SPACE;
 	}
 }
